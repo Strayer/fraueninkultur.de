@@ -14,12 +14,15 @@ const uglify = require('gulp-uglify');
 const cp = require('child_process');
 const imagemin = require('gulp-imagemin');
 const minifyCss = require('gulp-minify-css');
+const htmlmin = require('gulp-htmlmin');
+const changed = require('gulp-changed');
 
 var plumberOpts = {errorHandler: notify.onError('Error: <%= error.message %>')};
 
 gulp.task('clean', function () {
     del([
-        './_site/**/*'
+        './_site/**/*',
+        './_build/**/*'
     ]);
 });
 
@@ -61,13 +64,20 @@ gulp.task('images', function() {
 });
 
 gulp.task('jekyll-build', function(done) {
-    browserSync.notify('Building Jekyll');
     return cp.spawn('bundle', ['exec', 'jekyll', 'build'], {stdio: 'inherit'})
         .on('close', done);
 });
 
 gulp.task('jekyll-rebuild', ['jekyll-build'], function() {
-    browserSync.reload();
+    gulp.start('html');
+});
+
+gulp.task('html', function() {
+    return gulp.src('./_build/jekyll/**/*.html')
+        .pipe(changed('_site', {hasChanged: changed.compareSha1Digest}))
+        .pipe(htmlmin({collapseWhitespace: true}))
+        .pipe(gulp.dest('_site'))
+        .pipe(browserSync.stream());
 });
 
 gulp.task('watch', ['clean'], function () {
@@ -96,4 +106,4 @@ gulp.task('watch', ['clean'], function () {
     });
 });
 
-gulp.task('default', ['clean', 'less', 'javascript', 'images', 'jekyll-build']);
+gulp.task('default', ['clean', 'less', 'javascript', 'images', 'jekyll-build', 'html']);
