@@ -16,13 +16,15 @@ const imagemin = require('gulp-imagemin');
 const minifyCss = require('gulp-minify-css');
 const htmlmin = require('gulp-htmlmin');
 const changed = require('gulp-changed');
+const tar = require('gulp-tar');
+const gzip = require('gulp-gzip');
+const runSequence = require('run-sequence');
 
 var plumberOpts = {errorHandler: notify.onError('Error: <%= error.message %>')};
 
 gulp.task('clean', function () {
     del([
-        './_site/**/*',
-        './_build/**/*'
+        './_site/**/*'
     ]);
 });
 
@@ -63,9 +65,12 @@ gulp.task('images', function() {
         .pipe(gulp.dest('./_site/assets/images/'));
 });
 
-gulp.task('jekyll-build', function(done) {
-    return cp.spawn('bundle', ['exec', 'jekyll', 'build'], {stdio: 'inherit'})
-        .on('close', done);
+gulp.task('jekyll-build', function(callback) {
+    const jekyll = cp.spawn('bundle', ['exec', 'jekyll', 'build'], {stdio: 'inherit'});
+
+    jekyll.on('exit', function(code) {
+        callback(code === 0 ? null : 'ERROR: Jekyll process exited with code: ' + code);
+    });
 });
 
 gulp.task('jekyll-rebuild', ['jekyll-build'], function() {
@@ -80,17 +85,14 @@ gulp.task('html', function() {
         .pipe(browserSync.stream());
 });
 
-gulp.task('watch', ['clean'], function () {
+gulp.task('watch', function () {
     browserSync({
         server: {
             baseDir: "./_site/"
         }
     });
 
-    gulp.start('less');
-    gulp.start('javascript');
-    gulp.start('images');
-    gulp.start('jekyll-rebuild');
+    gulp.start('default');
 
     watch('./source/assets/less/*.less', function () {
         gulp.start("less");
@@ -106,4 +108,20 @@ gulp.task('watch', ['clean'], function () {
     });
 });
 
-gulp.task('default', ['clean', 'less', 'javascript', 'images', 'jekyll-build', 'html']);
+gulp.task('dist', ['default'], function() {
+    const isoDate = new Date().toISOString().replace(':', '.');
+
+    return gulp.src('./_site/**/*')
+        .pipe(tar('dist-' + isoDate + '.tar'))
+        .pipe(gzip())
+        .pipe(gulp.dest('./_dist/'));
+});
+
+gulp.task('default', function(callback) {
+    runSequence(
+        'clean',
+        ['less', 'javascript', 'images', 'jekyll-build'],
+        'html',
+        callback
+    );
+});
