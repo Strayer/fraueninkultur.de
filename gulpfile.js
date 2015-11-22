@@ -13,6 +13,7 @@ const concat = require('gulp-concat');
 const uglify = require('gulp-uglify');
 const cp = require('child_process');
 const imagemin = require('gulp-imagemin');
+const minifyCss = require('gulp-minify-css');
 
 var plumberOpts = {errorHandler: notify.onError('Error: <%= error.message %>')};
 
@@ -46,6 +47,7 @@ gulp.task("less", function () {
         .pipe(autoprefixer({
             browsers: ['Firefox >= 35', 'Chrome >= 38', 'IE >= 9', 'last 2 versions']
         }))
+        .pipe(minifyCss())
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./_site/assets/css'))
         .pipe(browserSync.stream({match: '**/*.css'}))
