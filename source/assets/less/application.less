@@ -1,0 +1,143 @@
+@import "../../../node_modules/bootstrap/less/bootstrap";
+
+@h1-font-size: 23px;
+h1 {
+  font-size: @h1-font-size;
+}
+
+h2 {
+  font-size: @h1-font-size * 0.8;
+}
+
+h3 {
+  font-size: @h1-font-size * 0.7;
+}
+
+body {
+  padding-top: 55px;
+}
+
+.navbar-default {
+  //background-color: #f07d00;
+  background-color: #fff;
+  border: 0;
+
+  .navbar-brand {
+    margin-left: 10px;
+    padding: 10px;
+    color: #000000;
+    font-size: @font-size-small;
+    text-transform: uppercase;
+    line-height: 15px;
+    width: 175px;
+
+    &:hover {
+      color: black;
+    }
+
+    img {
+      max-height: 30px;
+      float: left;
+      margin-right: 10px;
+    }
+  }
+
+  .navbar-toggle {
+    border-color: #000000;
+
+    &:focus, &:hover {
+      //background-color: #f07d00;
+      background-color: #fff;
+    }
+
+    .icon-bar {
+      background-color: #000000;
+    }
+  }
+
+  .navbar-nav > li > a {
+    color: #000000;
+  }
+
+  .navbar-collapse {
+    border-top: 0;
+    box-shadow: none;
+  }
+}
+
+.theme-purple {
+  background-color: #bf97c4;
+
+  .navbar-default {
+    border-bottom: 5px solid #82358c;
+  }
+}
+
+.theme-green {
+  background-color: #d6e5cb;
+
+  .navbar-default {
+    border-bottom: 5px solid #5b9731;
+  }
+}
+
+.theme-orange {
+  background-color: #f0a728;
+
+  .navbar-default {
+    border-bottom: 5px solid #f07d00;
+  }
+}
+
+.content-association {
+  .logo {
+    margin-left: -15px;
+    margin-right: -15px;
+
+    padding-top: 30px;
+    padding-bottom: 30px;
+
+    img {
+      width: 80%;
+      margin: 0 auto;
+      display: block;
+    }
+  }
+
+  .header {
+    h1 {
+      margin-top: 0;
+    }
+
+    .subhead {
+      font-weight: normal;
+      font-size: @font-size-base;
+      margin-top: 20px;
+    }
+
+    .headquarters {
+      margin-top: 40px;
+      margin-bottom: 30px;
+
+      font-size: @font-size-base * 0.8;
+    }
+
+    text-align: center;
+  }
+}
+
+.highlight-box {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 5px;
+
+  p:first-child {
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,22 @@
+# Site settings
+title: Internationaler Kulturverein von Frauen für Frauen e.V.
+email: info@fraueninkultur.de
+description: Mit und für Menschen verschiedener Nationalitäten
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "http://fraueninkultur.de" # the base hostname & protocol for your site
+
+# Build settings
+markdown: kramdown
+exclude:
+- ".gitignore"
+- ".ruby-version"
+- "Gemfile"
+- "Gemfile.lock"
+- "assets"
+source: ./source
+
+keep_files:
+- "assets"
+
+gems:
+  - jekyll-sitemap
