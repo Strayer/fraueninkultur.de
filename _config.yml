@@ -5,6 +5,8 @@ description: Mit und für Menschen verschiedener Nationalitäten
 baseurl: "" # the subpath of your site, e.g. /blog/
 url: "http://fraueninkultur.de" # the base hostname & protocol for your site
 
+# google_analytics_key: UA-70463152-1
+
 # Build settings
 markdown: kramdown
 exclude:

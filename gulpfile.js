@@ -80,7 +80,7 @@ gulp.task('jekyll-rebuild', ['jekyll-build'], function() {
 gulp.task('html', function() {
     return gulp.src('./_build/jekyll/**/*.html')
         .pipe(changed('_site', {hasChanged: changed.compareSha1Digest}))
-        .pipe(htmlmin({collapseWhitespace: true}))
+        .pipe(htmlmin({collapseWhitespace: true, minifyJS: true}))
         .pipe(gulp.dest('_site'))
         .pipe(browserSync.stream());
 });
