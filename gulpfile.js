@@ -2,7 +2,6 @@
 
 const gulp = require('gulp');
 const less = require('gulp-less');
-const watch = require('gulp-watch');
 const sourcemaps = require('gulp-sourcemaps');
 const autoprefixer = require('gulp-autoprefixer');
 const notify = require('gulp-notify');
@@ -15,37 +14,33 @@ const cp = require('child_process');
 const imagemin = require('gulp-imagemin');
 const cleanCss = require('gulp-clean-css');
 const htmlmin = require('gulp-htmlmin');
-const changed = require('gulp-changed');
 const tar = require('gulp-tar');
 const gzip = require('gulp-gzip');
-const runSequence = require('run-sequence');
 
 var plumberOpts = {errorHandler: notify.onError('Error: <%= error.message %>')};
 
-gulp.task('clean', function () {
-    del([
-        './_site/**/*'
-    ]);
-});
+function clean() {
+    return del(['./_site/**/*']);
+}
 
-gulp.task('javascript', function() {
+function process_javascript() {
     return gulp.src([
-            './node_modules/jquery/dist/jquery.js',
-            './node_modules/bootstrap/js/transition.js',
-            './node_modules/bootstrap/js/collapse.js',
-            './source/assets/js/*.js'
-        ])
+        './node_modules/jquery/dist/jquery.js',
+        './node_modules/bootstrap/js/transition.js',
+        './node_modules/bootstrap/js/collapse.js',
+        './source/assets/js/*.js'
+    ])
         .pipe(plumber(plumberOpts))
         .pipe(sourcemaps.init({loadMaps: true}))
         .pipe(uglify())
         .pipe(concat('app-merged.js'))
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./_site/assets/js'));
-        //.pipe(browserSync.stream())
-});
+    //.pipe(browserSync.stream())
+}
 
-gulp.task("less", function () {
-    return gulp.src('./source/assets/less/*.less')
+function process_less() {
+    return gulp.src('./source/assets/less/*.less', {since: gulp.lastRun(process_less)})
         .pipe(plumber(plumberOpts))
         .pipe(sourcemaps.init())
         .pipe(less())
@@ -57,71 +52,55 @@ gulp.task("less", function () {
         .pipe(gulp.dest('./_site/assets/css'))
         .pipe(browserSync.stream({match: '**/*.css'}))
         .pipe(notify({message: 'LESS done!', onLast: true}));
-});
+}
 
-gulp.task('images', function() {
-    return gulp.src('./source/assets/images/*')
+function process_images() {
+    return gulp.src('./source/assets/images/*', {since: gulp.lastRun(process_images)})
         .pipe(imagemin())
         .pipe(gulp.dest('./_site/assets/images/'));
-});
+}
 
-gulp.task('jekyll-build', function(callback) {
+function build_jekyll(callback) {
     const jekyll = cp.spawn('bundle', ['exec', 'jekyll', 'build'], {stdio: 'inherit'});
 
-    jekyll.on('exit', function(code) {
-        callback(code === 0 ? null : 'ERROR: Jekyll process exited with code: ' + code);
+    jekyll.on('exit', function (code) {
+        callback(code === 0 ? null : new Error('ERROR: Jekyll process exited with code: ' + code));
     });
-});
+}
 
-gulp.task('jekyll-rebuild', ['jekyll-build'], function() {
-    gulp.start('html');
-});
-
-gulp.task('html', function() {
-    return gulp.src('./_build/jekyll/**/*.html')
-        .pipe(changed('_site', {hasChanged: changed.compareSha1Digest}))
+function process_html() {
+    return gulp.src('./_build/jekyll/**/*.html', {since: gulp.lastRun(process_html)})
         .pipe(htmlmin({collapseWhitespace: true, minifyJS: true}))
         .pipe(gulp.dest('_site'))
         .pipe(browserSync.stream());
-});
+}
 
-gulp.task('watch', function () {
-    browserSync({
-        server: {
-            baseDir: "./_site/"
-        }
-    });
-
-    gulp.start('default');
-
-    watch('./source/assets/less/*.less', function () {
-        gulp.start("less");
-    });
-    watch('./source/assets/js/*.js', function () {
-        gulp.start("javascript");
-    });
-    watch('./source/assets/images/*', function () {
-        gulp.start("images");
-    });
-    watch('./source/**/*.html', function() {
-       gulp.start("jekyll-rebuild");
-    });
-});
-
-gulp.task('dist', ['default'], function() {
+function build_tar() {
     const isoDate = new Date().toISOString().replace(':', '.');
 
     return gulp.src('./_site/**/*')
         .pipe(tar('dist-' + isoDate + '.tar'))
         .pipe(gzip())
         .pipe(gulp.dest('./_dist/'));
-});
+}
 
-gulp.task('default', function(callback) {
-    runSequence(
-        'clean',
-        ['less', 'javascript', 'images', 'jekyll-build'],
-        'html',
-        callback
-    );
-});
+gulp.task('default', gulp.series(
+    clean,
+    gulp.parallel(process_less, process_javascript, process_images, build_jekyll),
+    process_html
+));
+
+gulp.task('watch', gulp.series('default', function () {
+    browserSync({
+        server: {
+            baseDir: "./_site/"
+        }
+    });
+
+    gulp.watch('./source/assets/less/*.less', process_less);
+    gulp.watch('./source/assets/js/*.js', process_javascript);
+    gulp.watch('./source/assets/images/*', process_images);
+    gulp.watch('./source/**/*.html', gulp.series(build_jekyll, process_html));
+}));
+
+gulp.task('dist', gulp.series('default', build_tar));
