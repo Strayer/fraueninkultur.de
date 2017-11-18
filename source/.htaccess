@@ -1,0 +1,6 @@
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 hour"
+
+    ExpiresByType application/pdf "access plus 1 year"
+</IfModule>

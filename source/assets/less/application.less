@@ -1,4 +1,6 @@
 @import "../../../node_modules/bootstrap/less/bootstrap";
+@import (less) "../../../node_modules/photoswipe/dist/photoswipe.css";
+@import (less) "../vendor/photoswipe-default-skin/default-skin.css";
 
 @grid-float-breakpoint: 992px;
 @h1-font-size: 23px;
@@ -91,6 +93,22 @@ body {
   }
 }
 
+.theme-blue {
+  background-color: #76bcf5;
+
+  .navbar-default {
+    border-bottom: 5px solid #5889b2;
+  }
+}
+
+.theme-orange-2 {
+  background-color: #ffc803;
+
+  .navbar-default {
+    border-bottom: 5px solid #f68901;
+  }
+}
+
 .content-association {
   .logo {
     margin-left: -15px;
@@ -141,5 +159,22 @@ body {
 
   p:last-child {
     margin-bottom: 0;
+  }
+}
+
+.gallery {
+  margin-left: -5px;
+  margin-right: -5px;
+
+  figure {
+    float: left;
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+
+  &:after {
+    content: '';
+    display: block;
+    clear: both;
   }
 }

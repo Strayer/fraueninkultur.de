@@ -6,7 +6,7 @@ const sourcemaps = require('gulp-sourcemaps');
 const autoprefixer = require('gulp-autoprefixer');
 const notify = require('gulp-notify');
 const plumber = require('gulp-plumber');
-const browserSync = require('browser-sync');
+const browserSync = require('browser-sync').create();
 const del = require('del');
 const concat = require('gulp-concat');
 const uglify = require('gulp-uglify');
@@ -16,8 +16,17 @@ const cleanCss = require('gulp-clean-css');
 const htmlmin = require('gulp-htmlmin');
 const tar = require('gulp-tar');
 const gzip = require('gulp-gzip');
+const rebaser = require('css-asset-rebaser');
 
 var plumberOpts = {errorHandler: notify.onError('Error: <%= error.message %>')};
+
+function copy_files() {
+    return gulp.src([
+        "./source/.htaccess",
+        "./source/BingSiteAuth.xml"
+    ])
+        .pipe(gulp.dest("./_site/"));
+}
 
 function clean() {
     return del(['./_site/**/*']);
@@ -28,6 +37,8 @@ function process_javascript() {
         './node_modules/jquery/dist/jquery.js',
         './node_modules/bootstrap/js/transition.js',
         './node_modules/bootstrap/js/collapse.js',
+        './node_modules/photoswipe/dist/photoswipe.js',
+        './node_modules/photoswipe/dist/photoswipe-ui-default.js',
         './source/assets/js/*.js'
     ])
         .pipe(plumber(plumberOpts))
@@ -43,7 +54,9 @@ function process_less() {
     return gulp.src('./source/assets/less/*.less', {since: gulp.lastRun(process_less)})
         .pipe(plumber(plumberOpts))
         .pipe(sourcemaps.init())
-        .pipe(less())
+        .pipe(less({
+            relativeUrls: true
+        }))
         .pipe(autoprefixer({
             browsers: ['Firefox >= 35', 'Chrome >= 38', 'IE >= 9', 'last 2 versions']
         }))
@@ -54,9 +67,15 @@ function process_less() {
         .pipe(notify({message: 'LESS done!', onLast: true}));
 }
 
+function process_vendor_images() {
+    return gulp.src('./source/assets/vendor/**/*.{png,svg,gif,jpg,jpeg}', {since: gulp.lastRun(process_images)})
+        .pipe(imagemin(undefined, { verbose: true }))
+        .pipe(gulp.dest('./_site/assets/vendor/'));
+}
+
 function process_images() {
-    return gulp.src('./source/assets/images/*', {since: gulp.lastRun(process_images)})
-        .pipe(imagemin())
+    return gulp.src('./source/assets/images/**/*', {since: gulp.lastRun(process_images)})
+        .pipe(imagemin(undefined, { verbose: true }))
         .pipe(gulp.dest('./_site/assets/images/'));
 }
 
@@ -84,14 +103,16 @@ function build_tar() {
         .pipe(gulp.dest('./_dist/'));
 }
 
+gulp.task('clean', clean);
+
 gulp.task('default', gulp.series(
     clean,
-    gulp.parallel(process_less, process_javascript, process_images, build_jekyll),
+    gulp.parallel(copy_files, process_less, process_javascript, process_images, process_vendor_images, build_jekyll),
     process_html
 ));
 
 gulp.task('watch', gulp.series('default', function () {
-    browserSync({
+    browserSync.init({
         server: {
             baseDir: "./_site/"
         }
@@ -100,6 +121,7 @@ gulp.task('watch', gulp.series('default', function () {
     gulp.watch('./source/assets/less/*.less', process_less);
     gulp.watch('./source/assets/js/*.js', process_javascript);
     gulp.watch('./source/assets/images/*', process_images);
+    gulp.watch('./source/assets/vendor/*', process_vendor_images);
     gulp.watch('./source/**/*.html', gulp.series(build_jekyll, process_html));
 }));
 
