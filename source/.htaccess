@@ -4,3 +4,7 @@
 
     ExpiresByType application/pdf "access plus 1 year"
 </IfModule>
+
+RewriteEngine on
+
+RewriteRule ^/datenschutz-haftungsausschluss(/.*)$ https://fraueninkultur.de/datenschutzerkläerung/ [R=301,L]
