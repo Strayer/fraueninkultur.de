@@ -7,3 +7,5 @@
 /_site/
 /_build/
 /_dist/
+
+.envrc
