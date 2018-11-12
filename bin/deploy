@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(cd -P -- "$(dirname -- "$0")" && pwd -P)"/..
+
+if [ ! -f _site/index.html ]; then
+    echo "index.html missing – site generated?"
+    exit 1
+fi
+
+lftp -c "\
+        open -u $DEPLOY_TARGET_USERNAME sftp://$DEPLOY_TARGET_HOST \
+        && mirror -RLvvv \
+        --upload-older \
+        --delete-first \
+        --exclude downloads/ \
+        --exclude have-i-been-pwned-verification.txt \
+        --exclude google8a152160c19d6347.html \
+        --exclude .DS_Store \
+        _site httpdocs \
+        && exit
+        "
